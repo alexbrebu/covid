@@ -1,0 +1,49 @@
+version: "3.7"
+
+services:
+  # The following services allow to run a shell with the environment of the apps
+  myjupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./work:/home/jovyan/work
+      - ./data:/home/jovyan/data
+    ports:
+      - "8888:8888"
+    environment:
+      GRANT_SUDO: "yes"
+      JUPYTER_ENABLE_LAB: "yes"
+    env_file:
+      - ./env/local.env
+    user: root
+    networks:
+      default:
+
+  # The following services allow to run a shell with the environment of the apps
+  core-db:
+    image: postgres:10-alpine
+    command: ["postgres", "-c", "log_statement=all"]
+    networks:
+      default:
+    ports:
+      - 5432:5432 # Allows using postgres-client from host
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+
+  pg-admin:
+    image: dpage/pgadmin4
+    volumes:
+      - /var/lib/pgadmin
+    networks:
+      default:
+    ports:
+      - "5050:5050"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "pgadmin4@pgadmin.org"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+      PGADMIN_LISTEN_PORT: "5050"
+
+networks:
+  default:
